@@ -82,7 +82,43 @@ def ROA():
     return ROA
 
 
-factor_list=['alpha_154','InvtRate','ATR6','dividendps','DAVOL20','ROA']
+
+
+
+def Forward_PE
+    dv.add_field('ebit', ds)
+    dv.add_field('total_share', ds)
+    total_share=dv.get_ts('total_share')
+    date=list(total_share.index)
+    for i in range(0,488):
+        date[i]=parse(str(date[i]))
+        date[i]=date[i].month
+        if date[i]%4==0:
+            date[i]=4
+        else:
+            date[i] =  (date[i]%4)*4
+    datetime_index=DataFrame.copy(total_share)
+    for i in range(0,981):
+        datetime_index.iloc[:,i]=date
+    datetime_index = datetime_index.astype('float64')
+    Forward_PE=dv.append_df(datetime_index,'datetime')
+    dv.add_formula('Forward_PE',"total_share*close/TTM(ebit)*datetime",is_quarterly=True,add_data=True)
+
+def SGRO_cpt():#此因子要求时间为5年以上当时间没有足够长式，会产生大量的NAN
+    dv.add_field('total_oper_rev', ds)
+    total_oper_rev=dv.get_ts('total_oper_rev')
+    time_list=list(range(1,1221))
+    time=DataFrame.copy(total_oper_rev)
+    for i in range(0,981):
+        time.iloc[:,i]=time
+    time = time.astype('float64')
+    dv.append_df(time, 'time')
+    SGRO_cpt=dv.add_formula('SGRO_cpt',"Covariance(TTM(total_oper_rev),time,60)/Covariance(time,time,60)/Abs(Ts_Mean(TTM(total_oper_rev),60))",is_quarterly=True,add_data=True)
+    return SGRO_cpt
+
+factor_list=['alpha_154','InvtRate','ATR6','dividendps','DAVOL20','ROA','SGRO_cpt','Forward_PE']
+
+
 def test(factor, data):
     if not isinstance(data, pd.core.frame.DataFrame):
         raise TypeError('On factor {} ,output must be a pandas.DataFrame!'.format(factor))
