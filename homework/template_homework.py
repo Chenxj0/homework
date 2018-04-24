@@ -27,7 +27,7 @@ end = 20180101
 factor_list  = ['BBI','RVI','Elder','ChaikinVolatility','EPS','PE','PS','ACCA','CTOP','MA10RegressCoeff12','AR','BR','ARBR','np_parent_comp_ttm','total_share','bps']
 check_factor = ','.join(factor_list)
 
-dataview_folder = r'E:/data'
+dataview_folder = 'D:\data'
 ds = LocalDataService(fp = dataview_folder)
 
 SH_id = ds.query_index_member("000001.SH", start, end)
@@ -85,7 +85,7 @@ def ROA():
 
 
 
-def Forward_PE
+def Forward_PE():
     dv.add_field('ebit', ds)
     dv.add_field('total_share', ds)
     total_share=dv.get_ts('total_share')
