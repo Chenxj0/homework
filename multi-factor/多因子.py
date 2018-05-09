@@ -8,7 +8,7 @@ api.login("13662241013",
           'eyJhbGciOiJIUzI1NiJ9.eyJjcmVhdGVfdGltZSI6IjE1MTc2NDQzMzg5MTIiLCJpc3MiOiJhdXRoMCIsImlkIjoiMTM2NjIyNDEwMTMifQ.sVIzI5VLqq8fbZCW6yZZW0ClaCkcZpFqpiK944AHEow'
 )
 
-start = 20170104
+start = 20100104
 end = 20180425
 SH_id = dp.index_cons(api, "000300.SH", start, end)
 SZ_id = dp.index_cons(api, "000905.SH", start, end)
@@ -62,41 +62,43 @@ dv.add_field('total_share',ds)
 dv.add_field('pe_ttm',ds)
 dv.add_field('roe',ds)
 dv.add_field('roa',ds)
-alpha1= dv.add_formula('alpha1', "Delta(close,200)/Delay(close,200)", is_quarterly=False, add_data=True)
+#alpha1= dv.add_formula('alpha1', "-1*Delta(close,200)/Delay(close,200)", is_quarterly=False, add_data=True)
 
-
+dv.add_formula('DP01',"close-Delay(Ts_Mean(close,20),11)",is_quarterly=False,add_data=True)
+alpha1=dv.add_formula('alpha1','-Ts_Mean(DP01,6)',is_quarterly=False,add_data=True)
 alpha2 = dv.add_formula('alpha2',
-               "Log(total_share*close)"
+               "-Log(total_share*close)"
                , is_quarterly=False, add_data=True)
+
+#alpha3 = dv.add_formula('alpha3',
+#               "roa"
+ #            , is_quarterly=False, add_data=True)
+
+#alpha4 = dv.add_formula('alpha4',
+#               "roe"
+#               , is_quarterly=False, add_data=True)
+#alpha5 = dv.add_formula('alpha5',
+#               "-1*price_div_dps", is_quarterly=False, add_data=True)
+
 
 alpha3 = dv.add_formula('alpha3',
-               "roa"
-             , is_quarterly=False, add_data=True)
-
-alpha4 = dv.add_formula('alpha4',
-               "roe"
-               , is_quarterly=False, add_data=True)
-alpha5 = dv.add_formula('alpha5',
-               "price_div_dps", is_quarterly=False, add_data=True)
-
-
-alpha6 = dv.add_formula('alpha6',
                "1/pe_ttm"
                , is_quarterly=True, add_data=True)
 
-alpha7 = dv.add_formula('alpha7',
-               "Ts_Mean(Abs(close-Ts_Mean(close,10)),10)"
-             , is_quarterly=False, add_data=True)
+#alpha7 = dv.add_formula('alpha7',
+ #              "-1*Ts_Mean(Abs(close-Ts_Mean(close,10)),10)"
+  #           , is_quarterly=False, add_data=True)
 
-alpha8 = dv.add_formula('alpha8',
+alpha4 = dv.add_formula('alpha4',
                                    "Ta('ATR',0,close,low,high,volume,20)" , is_quarterly=False, add_data=True)
 
-alpha9 = dv.add_formula('alpha9',"Correlation(close,turnover,10)"
+alpha5 = dv.add_formula('alpha5',"-Correlation(close,turnover,10)"
              , is_quarterly=False, add_data=True)
 
-alpha10=dv.add_formula('alpha10',
-                                  "Ts_Mean(turnover_ratio,25)"
+alpha6=dv.add_formula('alpha6',
+                                  "-Ts_Mean(turnover_ratio,25)"
                                    , is_quarterly=False, add_data=True)
+alpha7=dv.add_formula('alpha7',"-(close-Ewma(close,12))/Ewma(close,12)*100",is_quarterly=False,add_data=True)
 
 
 id_zz500 = dp.daily_index_cons(api, "000300.SH", start, end)
@@ -135,7 +137,7 @@ obj = SignalDigger()
 signal_data = dict()
 ic = dict()
 
-for signal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"]:
+for signal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"]:
     signal_data[signal] = dict()
     ic[signal] = dict()
     period=20
@@ -155,13 +157,13 @@ for signal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","a
     ic[signal][period] = pfm.calc_signal_ic(obj.signal_data)
 import pandas as pd
 
-ic_mean_table = pd.DataFrame(data=np.nan,columns=[20],index=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"])
-ic_std_table = pd.DataFrame(data=np.nan,columns=[20],index=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"])
-ir_table = pd.DataFrame(data=np.nan,columns=[20],index=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"])
+ic_mean_table = pd.DataFrame(data=np.nan,columns=[20],index=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"])
+ic_std_table = pd.DataFrame(data=np.nan,columns=[20],index=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"])
+ir_table = pd.DataFrame(data=np.nan,columns=[20],index=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"])
 
 
 
-for signal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"]:
+for signal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"]:
     period=20
     ic_mean_table.loc[signal, period] = ic[signal][period].mean().values[0]
     ic_std_table.loc[signal, period] = ic[signal][period].std().values[0]
@@ -184,9 +186,7 @@ id_zz800 = dp.daily_index_cons(api, "000906.SH", start, end)
 index_member = pd.concat([id_zz800],axis=1)
 
 dv.add_field('float_mv')
-for name in ["alpha5","alpha8","alpha9","alpha10"]:
-    signal = -1 * dv.get_ts(name)
-for name in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"]:
+for name in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"]:
     signal = dv.get_ts(name)
     process.winsorize(factor_df=signal, alpha=0.05, index_member=index_member)  # 去极值
     #signal = process.standardize(signal, index_member)  # z-score标准化 保留排序信息和分布信息
@@ -244,8 +244,8 @@ ic_20 = multi_factor.get_factors_ic_df(comb_factors,
                                            commission=0.0008,
                                            )
 
-ic_df=pd.DataFrame(data=np.nan,columns=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"],index=ic_20.index)
-for singal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7","alpha8","alpha9","alpha10"]:
+ic_df=pd.DataFrame(data=np.nan,columns=["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"],index=ic_20.index)
+for singal in ["alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","alpha7"]:
     ic_df[singal]=ic[singal][20]
 ic_20 = pd.concat([ic_20, -1 * ic_df], axis=1)
 
